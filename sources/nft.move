@@ -7,6 +7,7 @@ module mfs_nft::nft {
     use sui::package;
     use sui::display;
     use sui::event;
+    use sui::clock::Clock;
     use std::string;
     /// The Hero - an outstanding collection of digital art.
     public struct Hero has key, store {
@@ -26,6 +27,17 @@ module mfs_nft::nft {
         // The name of the NFT
         name: string::String,
     }
+
+    /// Constant to define the start time for minting (in milliseconds).
+    /// Replace this with the appropriate timestamp.
+    const MINT_START_TIME: u64 = 1697664000000; // Example: 2023-10-01 00:00:00 UTC
+
+    /// Function to initialize the MintCounter when the contract is deployed.
+    // public fun init_counter(ctx: &mut TxContext): MintCounter {
+    //     MintCounter {
+    //         total_minted: 0
+    //     }
+    // }
 
     /// In the module initializer one claims the `Publisher` object
     /// to then create a `Display`. The `Display` is initialized with
@@ -75,7 +87,10 @@ module mfs_nft::nft {
     }
 
     /// Anyone can mint their `Hero`!
-    public fun mint(name: String, image_url: String, ctx: &mut TxContext) {
+    public fun mint(clock: &Clock, name: String, image_url: String, ctx: &mut TxContext) {
+        let current_time = clock.timestamp_ms();
+        assert!(current_time >= MINT_START_TIME, 1001); // Error if already initialized
+        
         let id = object::new(ctx);
         let nft = Hero { id, name, image_url };
         let sender = tx_context::sender(ctx);
